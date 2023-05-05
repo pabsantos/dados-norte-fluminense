@@ -2,6 +2,7 @@ library(tidyverse)
 library(googledrive)
 library(janitor)
 library(lubridate)
+library(writexl)
 
 datasus_url <- 
     "https://github.com/pabsantos/datasus-rda/raw/main/rda/datasus-sim-2022.rda"
@@ -105,11 +106,25 @@ tab_renaest <- renaest_sinistros |>
         )
     ) |> 
     left_join(df_municipios, by = "codigo_ibge") |> 
-    count(nome_municipio) |> 
+    count(nome_municipio, ano_acidente) |>
+    pivot_wider(names_from = ano_acidente, values_from = n) |> 
     adorn_totals(name = "Mesorregião Norte Fluminense") |>
     filter(nome_municipio %in% c(
         "Campos dos Goytacazes", "São João da Barra",
         "Mesorregião Norte Fluminense"
     ))
 
-    
+# export ------------------------------------------------------------------
+
+list_tab <- list(
+    tab_obitos,
+    tab_prf,
+    tab_renaest
+)
+
+list_path <- paste0(
+    "table/",
+    c("tab_obitos.xlsx", "tab_prf.xlsx", "tab_renaest.xlsx")
+)
+
+map2(list_tab, list_path, write_xlsx)
